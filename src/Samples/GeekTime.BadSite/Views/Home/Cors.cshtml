@@ -1,0 +1,22 @@
+﻿
+@{
+    ViewData["Title"] = "Cors";
+}
+
+<h1>Cors</h1>
+<h2 id="h2"></h2>
+<script>
+
+    fetch('https://localhost:5003/Home/PostCors?name=abc', {
+        method: "POST",
+        credentials: 'include',
+        headers: new Headers({
+            'Content-Type': 'application/json'
+        }),
+        body: {}
+    })
+    .then(response => response.json())
+    .then(function (response) {
+        document.getElementById('h2').innerText = response.name;
+    });
+</script>

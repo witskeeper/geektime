@@ -1,0 +1,1 @@
+docker build --no-cache  -f  .\build\Dockerfile-Sdk -t dotnet-local-sdk:3.1 .

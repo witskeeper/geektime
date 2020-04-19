@@ -1,0 +1,64 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  namespace: default
+  labels:
+    tag: rabbitmq
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+      - name: rabbitmq
+        image: "rabbitmq:3.8.2-management"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 4369
+        - containerPort: 5671
+        - containerPort: 5672
+        - containerPort: 15671
+        - containerPort: 15672
+        resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: rabbitmq-storage
+          hostPath:
+              path: "/d/k8s/volumes/rabbitmq"
+              type: DirectoryOrCreate
+      restartPolicy: Always
+
+
+---
+  
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: default
+  labels:
+    tag: "redis"
+spec:
+  type: NodePort
+  ports:
+  - nodePort: 30003
+    name: rabbitmq-manager
+    port: 15672
+    targetPort: 15672
+    protocol: TCP
+  - nodePort: 30004
+    name: rabbitmq-service
+    port: 5672
+    targetPort: 5672
+    protocol: TCP
+  selector:
+    app: rabbitmq

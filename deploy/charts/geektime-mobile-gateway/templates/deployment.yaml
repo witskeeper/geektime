@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "geektime-mobile-gateway.fullname" . }}
+  labels:
+    {{- include "geektime-mobile-gateway.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "geektime-mobile-gateway.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "geektime-mobile-gateway.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "geektime-mobile-gateway.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: ASPNETCORE_HOSTINGSTARTUPASSEMBLIES
+              valueFrom:
+                configMapKeyRef:
+                  name: geektime-config
+                  key: skywalking_hostingStartup
+            - name: SkyWalking__Transport__gRPC__Servers
+              valueFrom:
+                configMapKeyRef:
+                  name: geektime-config
+                  key: skywalking_servers
+            - name: ASPNETCORE_USE_Forwarded_Headers
+              value: "false"
+          volumeMounts:
+            - mountPath: "/app/appsettings.json"
+              name: appsettings
+              subPath: appsettings-{{.Chart.AppVersion}}.json 
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: appsettings
+          configMap:
+              name: {{ include "geektime-mobile-gateway.fullname" . }}-config
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

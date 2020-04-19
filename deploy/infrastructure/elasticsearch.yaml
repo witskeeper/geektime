@@ -1,0 +1,67 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: elasticsearch
+  namespace: default
+  labels:
+    tag: elasticsearch
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+      - name: elasticsearch
+        image: "elasticsearch:7.5.2"
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: discovery.type
+          value: "single-node"
+        volumeMounts:
+          - mountPath: "/usr/share/elasticsearch/data"
+            name: elasticsearch-storage
+        ports:
+        - containerPort: 9200
+        - containerPort: 9300
+        resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+            requests:
+              cpu: 100m
+              memory: 512Mi
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: elasticsearch-storage
+          hostPath:
+              path: "/d/k8s/volumes/elasticsearch/data"
+              type: DirectoryOrCreate
+      restartPolicy: Always
+
+--- 
+
+  
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: default
+  labels:
+    tag: "elasticsearch"
+spec:
+  type: NodePort
+  ports:
+  - nodePort: 30007
+    port: 9200
+    targetPort: 9200
+    name: "9200"
+    protocol: TCP
+  - nodePort: 30008
+    port: 9300
+    targetPort: 9300
+    name: "9300"
+    protocol: TCP
+  selector:
+    app: elasticsearch

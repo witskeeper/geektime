@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcServices";
+
+package GrpcServices;
+
+service OrderGrpc {
+	rpc CreateOrder(CreateOrderCommand) returns (CreateOrderResult);
+}
+
+
+message CreateOrderCommand {
+	string buyerId = 1;
+    int32 productId = 2;
+    double unitPrice = 3;
+    double discount = 4;
+    int32 units = 5;
+}
+
+message CreateOrderResult {
+    int32 orderId = 1;
+}

@@ -1,0 +1,5 @@
+127.0.0.1  kubernetes-dashboard.local
+127.0.0.1  grafana.local
+127.0.0.1  alertmanager.local
+127.0.0.1  prometheus.local
+127.0.0.1  healthchecks.local

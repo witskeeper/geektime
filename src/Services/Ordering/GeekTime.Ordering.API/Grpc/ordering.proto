@@ -1,0 +1,39 @@
+syntax = "proto3";
+import "google/protobuf/wrappers.proto";
+option csharp_namespace = "GeekTime.Ordering.API.Grpc";
+
+
+service OrderService {
+
+	rpc CreateOrder(CreateOrderCommand) returns (google.protobuf.Int64Value);
+
+	rpc Search(SearchRequest) returns (SearchResponse);
+}
+
+
+message CreateOrderCommand{
+	int32 ItemCount = 1;
+}
+
+message Order {
+    int64 Id = 1;
+	int64 UserId = 2;
+	string UserName = 3;
+	Address Address = 4;
+	string ItemCount = 5; 
+}
+
+message Address{
+	string Street = 1;
+	string City = 2;
+	string ZipCode = 3;
+}
+
+
+message SearchRequest{
+	string UserName = 1;
+}
+
+message SearchResponse{
+  repeated string Orders = 1;
+}

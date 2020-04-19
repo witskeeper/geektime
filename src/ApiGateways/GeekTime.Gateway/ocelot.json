@@ -1,0 +1,40 @@
+{
+  "ReRoutes": [
+    {
+      "DownstreamPathTemplate": "/api/{version}/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5004
+        }
+      ],
+      "UpstreamPathTemplate": "/api/mobileAgg/{everything}",
+      "UpstreamHttpMethod": []
+    },
+    {
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5000
+        }
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Cookies",
+        "AllowedScopes": []
+      },
+      "RouteClaimsRequirement": {
+        "UserType": "Admin"
+      },
+      "UpstreamPathTemplate": "/api/mobile/{everything}",
+      "UpstreamHttpMethod": []
+    }
+
+  ],
+  "GlobalConfiguration": {
+    "RequestIdKey": "OcRequestId",
+    "AdministrationPath": "/administration"
+  }
+}

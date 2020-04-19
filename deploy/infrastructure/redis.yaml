@@ -1,0 +1,58 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: default
+  labels:
+    tag: redis
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: "redis:5.0.7"
+        imagePullPolicy: IfNotPresent
+        args:
+          - "--appendonly yes"
+        volumeMounts:
+          - mountPath: "/data"
+            name: redis-storage
+        ports:
+        - containerPort: 6379
+        resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: redis-storage
+          hostPath:
+              path: "/d/k8s/volumes/redis"
+              type: DirectoryOrCreate
+      restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: default
+  labels:
+    tag: "redis"
+spec:
+  type: NodePort
+  ports:
+  - nodePort: 30002
+    port: 6379
+    targetPort: 6379
+    protocol: TCP
+  selector:
+    app: redis

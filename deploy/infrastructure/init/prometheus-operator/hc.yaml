@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: prometheus-operator-healthchecks
+  name: prometheus-operator-healthchecks
+  namespace: kube-system
+spec:
+  endpoints:
+  - path: /metrics
+    port: "80"
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: geektime-healthcheckshost
+      app.kubernetes.io/name: geektime-healthcheckshost

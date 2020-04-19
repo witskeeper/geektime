@@ -1,0 +1,210 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: exceptionless-api
+  namespace: default
+  labels:
+    tag: exceptionless-api
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: exceptionless-api
+    spec:
+      containers:
+      - name: exceptionless-api
+        image: "exceptionless/api:6.0.0"
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: EX_AppMode
+          value: "Production"
+        - name: EX_BaseURL
+          value: http://localhost:30013
+        - name: EX_ConnectionStrings__Cache
+          value: provider=redis
+        - name: EX_ConnectionStrings__Elasticsearch
+          value: server=http://elasticsearch:9200;enable-size-plugin=false
+        #- name: EX_ConnectionStrings__Email
+        #  value: smtps://user:password@smtp.host.com:587
+        - name: EX_ConnectionStrings__MessageBus
+          value: provider=redis
+        - name: EX_ConnectionStrings__Queue
+          value: provider=redis
+        - name: EX_ConnectionStrings__Redis
+          value: server=redis,abortConnect=false
+        - name: EX_ConnectionStrings__Storage
+          value: provider=folder;path=/app/storage
+        - name: EX_RunJobsInProcess
+          value: 'false'
+        volumeMounts:
+          - mountPath: "/app/storage"
+            name: exceptionless-storage
+        ports:
+        - containerPort: 80
+        resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: exceptionless-storage
+          hostPath:
+              path: "/d/k8s/volumes/exceptionless"
+              type: DirectoryOrCreate
+      restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: exceptionless-api
+  namespace: default
+  labels:
+    tag: "exceptionless-api"
+spec:
+  type: NodePort
+  ports:
+  - nodePort: 30012
+    port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: exceptionless-api
+
+---
+
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: exceptionless-job
+  namespace: default
+  labels:
+    tag: exceptionless-job
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: exceptionless-job
+    spec:
+      containers:
+      - name: exceptionless-job
+        image: "exceptionless/job:6.0.0"
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: EX_AppMode
+          value: "Production"
+        - name: EX_BaseURL
+          value: http://localhost:30013
+        - name: EX_ConnectionStrings__Cache
+          value: provider=redis
+        - name: EX_ConnectionStrings__Elasticsearch
+          value: server=http://elasticsearch:9200;enable-size-plugin=false
+        #- name: EX_ConnectionStrings__Email
+        #  value: smtps://user:password@smtp.host.com:587
+        - name: EX_ConnectionStrings__MessageBus
+          value: provider=redis
+        - name: EX_ConnectionStrings__Queue
+          value: provider=redis
+        - name: EX_ConnectionStrings__Redis
+          value: server=redis,abortConnect=false
+        - name: EX_ConnectionStrings__Storage
+          value: provider=folder;path=/app/storage
+        - name: EX_RunJobsInProcess
+          value: 'false'
+        volumeMounts:
+          - mountPath: "/app/storage"
+            name: exceptionless-job-storage
+        ports:
+        - containerPort: 80
+        resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: exceptionless-job-storage
+          hostPath:
+              path: "/d/k8s/volumes/exceptionless"
+              type: DirectoryOrCreate
+      restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: exceptionless-job
+  namespace: default
+  labels:
+    tag: "exceptionless-job"
+spec:
+  type: NodePort
+  ports:
+  - nodePort: 30014
+    port: 80
+    targetPort: 80
+    protocol: TCP
+
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: exceptionless-ui
+  namespace: default
+  labels:
+    tag: exceptionless-ui
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: exceptionless-ui
+    spec:
+      containers:
+      - name: exceptionless-ui
+        image: "exceptionless/ui:2.8.1497"
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: AppMode
+          value: "Production"
+        - name: EX_ApiUrl
+          value: http://localhost:30012
+        ports:
+        - containerPort: 80
+        resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+      terminationGracePeriodSeconds: 10
+      restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: exceptionless-ui
+  namespace: default
+  labels:
+    tag: "exceptionless-ui"
+spec:
+  type: NodePort
+  ports:
+  - nodePort: 30013
+    port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: exceptionless-ui

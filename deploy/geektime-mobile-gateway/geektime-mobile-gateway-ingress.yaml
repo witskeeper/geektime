@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: geektime-mobile-gateway-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: 30s
+    nginx.ingress.kubernetes.io/proxy-send-timeout: 20s
+    nginx.ingress.kubernetes.io/proxy-read-timeout: 20s
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
+spec:
+  rules:
+  - host: localhost
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: geektime-mobile-gateway
+          servicePort: 80

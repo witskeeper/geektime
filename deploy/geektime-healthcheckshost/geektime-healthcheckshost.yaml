@@ -1,0 +1,76 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: geektime-healthcheckshost
+  namespace: kube-system
+  labels:
+    app: geektime-healthcheckshost
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: geektime-healthcheckshost
+    spec:
+      containers:
+      - name: geektime-healthcheckshost
+        image: "geektime-healthcheckshost:1.0.0"
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+          - mountPath: "/app/appsettings.json"
+            name: appsettings
+            subPath: appsettings-v1.0.0.json
+        ports:
+        - containerPort: 80
+        env:
+          - name: MyEnv
+            value: "value from env"
+        livenessProbe:
+          httpGet:
+            path: /live
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 2
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 80
+          periodSeconds: 3
+          successThreshold: 2
+          timeoutSeconds: 2
+          failureThreshold: 3
+        resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: appsettings
+          configMap:
+              name: geektime-healthcheckshost-config
+      restartPolicy: Always
+--- 
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: geektime-healthcheckshost
+  namespace: kube-system
+  labels:
+    app: geektime-healthcheckshost
+    HealthChecks: "true"
+spec:
+  type: ClusterIP
+  ports:
+  - name: web
+    port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: geektime-healthcheckshost

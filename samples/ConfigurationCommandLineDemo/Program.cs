@@ -12,7 +12,7 @@ namespace ConfigurationCommandLineDemo
             //builder.AddCommandLine(args);
 
             #region 命令替换
-            var mapper = new Dictionary<string, string> { { "-k1", "CommandLineKey1" } };
+            var mapper = new Dictionary<string, string> { { "--k1", "CommandLineKey1" } };
             builder.AddCommandLine(args, mapper);
             #endregion
 
@@ -20,6 +20,7 @@ namespace ConfigurationCommandLineDemo
 
             Console.WriteLine($"CommandLineKey1:{configurationRoot["CommandLineKey1"]}");
             Console.WriteLine($"CommandLineKey2:{configurationRoot["CommandLineKey2"]}");
+            Console.WriteLine($"CommandLineKey3:{configurationRoot["CommandLineKey3"]}");
             Console.ReadKey();
         }
     }

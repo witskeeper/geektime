@@ -1,0 +1,54 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: default
+  labels:
+    tag: kibana
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+      - name: kibana
+        image: "kibana:6.8.6"
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: discovery.type
+          value: "single-node"
+        - name: XPACK_MONITORING_ENABLED
+          value: "true"
+        ports:
+        - containerPort: 5601
+        resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+            requests:
+              cpu: 100m
+              memory: 512Mi
+      terminationGracePeriodSeconds: 10
+      restartPolicy: Always
+
+--- 
+
+  
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: default
+  labels:
+    tag: "kibana"
+spec:
+  type: NodePort
+  ports:
+  - nodePort: 30009
+    port: 5601
+    targetPort: 5601
+    protocol: TCP
+  selector:
+    app: kibana

@@ -1,0 +1,11 @@
+﻿
+@{
+    ViewData["Title"] = "Login";
+}
+
+<h1>Login</h1>
+<form action="@Url.Action("Login")" method="post">
+    <label>用户名:<input type="text" name="name" value="" /></label>
+    <label>密码：<input type="text" name="password" value="" /></label>
+    <input type="submit" value="提交" />
+</form>

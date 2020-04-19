@@ -1,0 +1,49 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: default
+  labels:
+    tag: grafana
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: "grafana/grafana:6.5.2"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+        resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+      terminationGracePeriodSeconds: 10
+      restartPolicy: Always
+
+--- 
+
+  
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: default
+  labels:
+    tag: "grafana"
+spec:
+  type: NodePort
+  ports:
+  - nodePort: 30015
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+  selector:
+    app: grafana

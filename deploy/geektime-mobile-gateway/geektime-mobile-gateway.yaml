@@ -1,0 +1,81 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: geektime-mobile-gateway
+  namespace: default
+  labels:
+    app: geektime-mobile-gateway
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: geektime-mobile-gateway
+    spec:
+      containers:
+      - name: geektime-mobile-gateway
+        image: "geektime-mobile-gateway:v1.0.0"
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+          - mountPath: "/app/appsettings.json"
+            name: appsettings
+            subPath: appsettings-v1.0.0.json
+        ports:
+        - containerPort: 80
+        env:
+          - name: USE_Forwarded_Headers
+            value: "false"
+          - name: MyEnv
+            value: "value from env"
+          - name: ENV_ABC
+            valueFrom:
+              configMapKeyRef:
+                name: geektime-config
+                key: ENV_ABC
+        livenessProbe:
+          httpGet:
+            path: /live
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 2
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 80
+          periodSeconds: 3
+          successThreshold: 2
+          timeoutSeconds: 2
+          failureThreshold: 3
+        resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: appsettings
+          configMap:
+              name: geektime-mobile-gateway-config
+      restartPolicy: Always
+--- 
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: geektime-mobile-gateway
+  namespace: default
+  labels:
+    app: geektime-mobile-gateway
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: geektime-mobile-gateway

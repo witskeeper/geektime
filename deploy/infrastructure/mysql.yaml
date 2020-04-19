@@ -1,0 +1,63 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: default
+  labels:
+    tag: mysql
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: "mysql:8.0.19"
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "123456"
+        args:
+          - "--character-set-server=utf8mb4"
+          - "--collation-server=utf8mb4_unicode_ci"
+        volumeMounts:
+          - mountPath: "/var/lib/mysql"
+            name: mysql-pv-storage
+        ports:
+        - containerPort: 3306
+        resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: mysql-pv-storage
+          hostPath:
+              path: "/d/k8s/volumes/mysql"
+              type: DirectoryOrCreate
+      restartPolicy: Always
+
+--- 
+
+  
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: default
+  labels:
+    tag: "mysql"
+spec:
+  type: NodePort
+  ports:
+  - nodePort: 30001
+    port: 3306
+    targetPort: 3306
+    protocol: TCP
+  selector:
+    app: mysql

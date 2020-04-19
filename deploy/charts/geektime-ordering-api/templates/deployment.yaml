@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "geektime-ordering-api.fullname" . }}
+  labels:
+    {{- include "geektime-ordering-api.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "geektime-ordering-api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "geektime-ordering-api.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "geektime-ordering-api.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: ASPNETCORE_HOSTINGSTARTUPASSEMBLIES
+              valueFrom:
+                configMapKeyRef:
+                  name: geektime-config
+                  key: skywalking_hostingStartup
+            - name: SkyWalking__Transport__gRPC__Servers
+              valueFrom:
+                configMapKeyRef:
+                  name: geektime-config
+                  key: skywalking_servers
+            - name: exceptionless__ServerUrl
+              valueFrom:
+                configMapKeyRef:
+                  name: geektime-config
+                  key: exceptionless_serverUrl
+            - name: ASPNETCORE_USE_Forwarded_Headers
+              value: "true"
+            - name: ASPNETCORE_USE_PathBase
+              value: "true"
+          volumeMounts:
+            - mountPath: "/app/appsettings.json"
+              name: appsettings
+              subPath: appsettings-{{.Chart.AppVersion}}.json
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+            - name: http2
+              containerPort: 81
+              protocol: TCP
+            - name: https
+              containerPort: 443
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: appsettings
+          configMap:
+              name: {{ include "geektime-ordering-api.fullname" . }}-config
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

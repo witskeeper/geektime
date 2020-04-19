@@ -1,0 +1,71 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: fluentd
+  namespace: default
+  labels:
+    tag: fluentd
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fluentd
+    spec:
+      containers:
+      - name: fluentd
+        image: "witskeeper/fluentd-es:68"
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: discovery.type
+          value: "single-node"
+        volumeMounts:
+          - mountPath: "/fluentd/etc/fluent.conf"
+            name: fluentd-config
+            subPath: fluent.conf
+          - mountPath: "/var/log"
+            name: containers-logs
+          - mountPath: "/var/lib/docker/containers"
+            name: docker-logs
+        ports:
+        - containerPort: 24224
+        resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+            requests:
+              cpu: 100m
+              memory: 512Mi
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: fluentd-config
+          configMap:
+              name: fluentd-config
+        - name: containers-logs
+          hostPath:
+              path: "/var/log"
+              type: DirectoryOrCreate
+        - name: docker-logs
+          hostPath:
+            path: /var/lib/docker/containers
+      restartPolicy: Always
+
+--- 
+
+  
+apiVersion: v1
+kind: Service
+metadata:
+  name: fluentd
+  namespace: default
+  labels:
+    tag: "fluentd"
+spec:
+  type: NodePort
+  ports:
+  - nodePort: 30011
+    port: 24224
+    targetPort: 24224
+    protocol: TCP
+  selector:
+    app: fluentd

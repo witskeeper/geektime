@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Proto\order.proto" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.26.0" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="3.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Proto\order.proto" GrpcServices="Server" />
+  </ItemGroup>
+
+</Project>
